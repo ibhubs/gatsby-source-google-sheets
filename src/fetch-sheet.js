@@ -13,7 +13,7 @@ const getSpreadsheet = (spreadsheetId, credentials) =>
 
 const getWorksheetByTitle = (spreadsheet, worksheetTitle) =>
   new Promise((resolve, reject) =>
-    spreadsheet.getInfo((e, s) => {
+    spreadsheet.loadInfo((e, s) => {
       if (e) reject(e);
       const targetSheet = s.worksheets.find(sheet => sheet.title === worksheetTitle);
       if (!targetSheet) {
@@ -76,8 +76,10 @@ const guessColumnsDataTypes = rows =>
   ).reduce((columnTypes, row) => {
     _.forEach(row, (type, columnName) => {
       // skip nulls, they should have no effect
-      if (type === 'null') { return; }
-      
+      if (type === "null") {
+        return;
+      }
+
       const currentTypeCandidate = columnTypes[columnName];
       if (!currentTypeCandidate) {
         // no discovered type yet -> use the one from current item
@@ -88,7 +90,7 @@ const guessColumnsDataTypes = rows =>
       }
     });
     return columnTypes;
-  }, {})
+  }, {});
 
 const fetchData = async (spreadsheetId, worksheetTitle, credentials) => {
   const spreadsheet = await getSpreadsheet(spreadsheetId, credentials);

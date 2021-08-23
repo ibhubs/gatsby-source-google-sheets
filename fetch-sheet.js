@@ -73,9 +73,10 @@ const fetchData = async (spreadsheetId, worksheetTitle, credentials) => {
   const spreadsheet = await getSpreadsheet(spreadsheetId, credentials);
   await spreadsheet.loadInfo();
   const worksheet = await getWorksheetByTitle(spreadsheet, worksheetTitle);
+  const sheetTitle = await worksheet.title;
   const rows = await worksheet.getRows();
   // return cleanRows(rows);
-  return rows;
+  return { rows, sheetTitle };
 };
 
 exports.cleanRows = cleanRows;

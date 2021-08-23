@@ -8,18 +8,16 @@ const getSpreadsheet = (spreadsheetId, credentials) => new Promise(async (resolv
   const doc = new GoogleSpreadsheet(spreadsheetId);
   await doc.useServiceAccountAuth({
     client_email: credentials.client_email,
-    private_key: credentials.private_key,
+    private_key: credentials.private_key
   });
-  resolve(doc)
-
+  resolve(doc);
 });
 
 const getWorksheetByTitle = (spreadsheet, worksheetID) => new Promise(async (resolve, reject) => {
-  console.log('workSheetId', worksheetID)
-  const workSheet = await spreadsheet.sheetsById[worksheetID]
-  resolve(workSheet)
-}
-);
+  console.log('workSheetId', worksheetID);
+  const workSheet = await spreadsheet.sheetsById[worksheetID];
+  resolve(workSheet);
+});
 
 const getRows = (worksheet, options = {}) => new Promise((resolve, reject) => resolve(worksheet.getRows()));
 
@@ -28,9 +26,9 @@ const cleanRows = rows => {
   return rows.map(r => _.chain(r).omit(["_xml", "app:edited", "save", "del", "_links"]).mapKeys((v, k) => _.camelCase(k)).mapValues((val, key) => {
     switch (columnTypes[key]) {
       case "number":
-        console.log('value', val)
+        console.log('value', val);
         // return Number(val.replace(/,/g, ""));
-        return val
+        return val;
       case "boolean":
         // when column contains null we return null, otherwise check boolean value
         return val === null ? null : val === "TRUE";
@@ -73,11 +71,12 @@ const guessColumnsDataTypes = rows => _.flatMap(rows, r => _.chain(r).omit(["_xm
 
 const fetchData = async (spreadsheetId, worksheetTitle, credentials) => {
   const spreadsheet = await getSpreadsheet(spreadsheetId, credentials);
-  await spreadsheet.loadInfo()
+  await spreadsheet.loadInfo();
   const worksheet = await getWorksheetByTitle(spreadsheet, worksheetTitle);
+  const sheetTitle = await worksheet.title;
   const rows = await worksheet.getRows();
   // return cleanRows(rows);
-  return rows
+  return {rows, sheetTitle};
 };
 
 exports.cleanRows = cleanRows;

@@ -16,7 +16,7 @@ const seedConstant = "2972963f-2fcf-4567-9237-c09a2b436541";
 exports.sourceNodes = async ({ boundActionCreators, getNode, store, cache }, { spreadsheetId, worksheetTitle, credentials }) => {
   const { createNode } = boundActionCreators;
   console.log("FETCHING SHEET", spreadsheetId);
-  let rows = await fetchSheet(spreadsheetId, worksheetTitle, credentials);
+  let { rows, sheetTitle } = await fetchSheet(spreadsheetId, worksheetTitle, credentials);
 
   rows.forEach(r => {
     createNode((0, _extends3.default)({}, r, {
@@ -24,7 +24,7 @@ exports.sourceNodes = async ({ boundActionCreators, getNode, store, cache }, { s
       parent: "__SOURCE__",
       children: [],
       internal: {
-        type: _.camelCase(`googleSheet ${worksheetTitle} row`),
+        type: _.camelCase(`googleSheet ${sheetTitle} row`),
         contentDigest: crypto.createHash("md5").update(stringify(r)).digest("hex")
       }
     }));

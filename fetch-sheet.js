@@ -1,7 +1,7 @@
 "use strict";
 
 exports.__esModule = true;
-const GoogleSpreadsheet = require("google-spreadsheet");
+const { GoogleSpreadsheet } = require("google-spreadsheet");
 const _ = require("lodash");
 
 const getSpreadsheet = (spreadsheetId, credentials) => new Promise((resolve, reject) => {

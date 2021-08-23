@@ -4,34 +4,31 @@ exports.__esModule = true;
 const { GoogleSpreadsheet } = require("google-spreadsheet");
 const _ = require("lodash");
 
-const getSpreadsheet = (spreadsheetId, credentials) => new Promise((resolve, reject) => {
+const getSpreadsheet = (spreadsheetId, credentials) => new Promise(async (resolve, reject) => {
   const doc = new GoogleSpreadsheet(spreadsheetId);
-  doc.useServiceAccountAuth(credentials, function (err) {
-    if (err) reject(err);else resolve(doc);
+  await doc.useServiceAccountAuth({
+    client_email: credentials.client_email,
+    private_key: credentials.private_key
   });
+  resolve(doc);
 });
 
-const getWorksheetByTitle = (spreadsheet, worksheetTitle) => new Promise((resolve, reject) => spreadsheet.loadInfo((e, s) => {
-  if (e) reject(e);
-  const targetSheet = s.worksheets.find(sheet => sheet.title === worksheetTitle);
-  if (!targetSheet) {
-    reject(`Found no worksheet with the title ${worksheetTitle}`);
-  }
-  resolve(targetSheet);
-}));
+const getWorksheetByTitle = (spreadsheet, worksheetID) => new Promise(async (resolve, reject) => {
+  console.log('workSheetId', worksheetID);
+  const workSheet = await spreadsheet.sheetsById[worksheetID];
+  resolve(workSheet);
+});
 
-const getRows = (worksheet, options = {}) => new Promise((resolve, reject) => worksheet.getRows(options, (err, rows) => {
-  if (err) reject(err);else {
-    resolve(rows);
-  }
-}));
+const getRows = (worksheet, options = {}) => new Promise((resolve, reject) => resolve(worksheet.getRows()));
 
 const cleanRows = rows => {
   const columnTypes = guessColumnsDataTypes(rows);
   return rows.map(r => _.chain(r).omit(["_xml", "app:edited", "save", "del", "_links"]).mapKeys((v, k) => _.camelCase(k)).mapValues((val, key) => {
     switch (columnTypes[key]) {
       case "number":
-        return Number(val.replace(/,/g, ""));
+        console.log('value', val);
+        // return Number(val.replace(/,/g, ""));
+        return val;
       case "boolean":
         // when column contains null we return null, otherwise check boolean value
         return val === null ? null : val === "TRUE";
@@ -74,9 +71,11 @@ const guessColumnsDataTypes = rows => _.flatMap(rows, r => _.chain(r).omit(["_xm
 
 const fetchData = async (spreadsheetId, worksheetTitle, credentials) => {
   const spreadsheet = await getSpreadsheet(spreadsheetId, credentials);
+  await spreadsheet.loadInfo();
   const worksheet = await getWorksheetByTitle(spreadsheet, worksheetTitle);
-  const rows = await getRows(worksheet);
-  return cleanRows(rows);
+  const rows = await worksheet.getRows();
+  // return cleanRows(rows);
+  return rows;
 };
 
 exports.cleanRows = cleanRows;
